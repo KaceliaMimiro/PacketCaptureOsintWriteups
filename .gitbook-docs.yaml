@@ -1,0 +1,18 @@
+
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: OSINT CTF Writeups
+  structure:
+    - type: section
+      key: writeups
+      title: Writeups
+      path: writeups
+      children:
+        - type: space
+          key: osint
+          title: OSINT
+          path: osint
+          default: true
+          content:
+            directory: ./
+            language: en
