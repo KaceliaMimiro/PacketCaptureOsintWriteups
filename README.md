@@ -2,6 +2,10 @@
 
 Writeups for the PacketCapture OSINT challenges.
 
+Author: Mimiro Kacelia
+
+https://github.com/KaceliaMimiro
+
 | # | Challenge | Difficulty | Flag |
 |---|-----------|------------|------|
 | 1 | [Treasure Hunt Time](#treasure-hunt-time) | Easy | `PacketCapture{85.36,81.05}` |
