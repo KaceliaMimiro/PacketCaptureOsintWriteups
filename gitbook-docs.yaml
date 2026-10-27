@@ -6,11 +6,11 @@ site:
       key: writeups
       title: Writeups
       path: writeups
-      default: true
       children:
         - type: space
           key: osint
           title: OSINT
           path: osint
+          default: true
           content:
             directory: ./
