@@ -6,6 +6,7 @@ site:
       key: writeups
       title: Writeups
       path: writeups
+      default: true
       children:
         - type: space
           key: osint
