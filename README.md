@@ -1,60 +1,64 @@
-# PacketCapture CTF: OSINT Writeups
+# OSINT CTF Writeups
 
-Writeups for the OSINT category.
+Writeups for the PacketCapture OSINT challenges.
 
 | # | Challenge | Difficulty | Flag |
 |---|-----------|------------|------|
-| 1 | [Treasure Hunt Time](#1-treasure-hunt-time) | Easy | `PacketCapture{85.36,81.05}` |
-| 2 | [Mirror Identities](#2-mirror-identities) | Medium | `PacketCapture{p3rf3ctly_P13c3D}` |
-| 3 | [Digital Footprint](#3-digital-footprint) | Medium | `PacketCapture{3Ven_1f_i_D1s4ppe4r_tH3_W0rld_r3Memb3rs}` |
-| 4 | [The Final Breadcrumb](#4-the-final-breadcrumb) | Hard | `PacketCapture{magentatexturemofsj7hk44wtsh762nv46lt3bnprcmttbaqxknux66rnaddmyd}` |
-
-> **Screenshots:** image placeholders (`images/<challenge>/<n>.png`) mark where each screenshot belongs. Drop your images into those paths before publishing.
+| 1 | [Treasure Hunt Time](#treasure-hunt-time) | Easy | `PacketCapture{85.36,81.05}` |
+| 2 | [Mirror Identities](#mirror-identities) | Medium | `PacketCapture{p3rf3ctly_P13c3D}` |
+| 3 | [Digital Footprint](#digital-footprint) | Medium | `PacketCapture{3Ven_1f_i_D1s4ppe4r_tH3_W0rld_r3Memb3rs}` |
+| 4 | [The Final Breadcrumb](#the-final-breadcrumb) | Hard | `PacketCapture{magentatexturemofsj7hk44wtsh762nv46lt3bnprcmttbaqxknux66rnaddmyd}` |
 
 ---
 
-## 1. Treasure Hunt Time
+## Treasure Hunt Time
 
-**Category:** OSINT | **Difficulty:** Easy
+**Category:** OSINT
+**Difficulty:** Easy
 
 ### Description
 
 > My grandfather left me this image as part of his will. He said I can find a treasure using it. I don't know, maybe he's just playing with me.
 
-**Flag format:** `PacketCapture{00.00, 00.00}`
+**Flag Format:** `PacketCapture{00.00, 00.00}`
 
-**Coordinate format:** Decimal degrees (DD). Degrees-minutes-seconds (DMS) is shown below for reference.
+**Coordinate Format (DMS):** `D° M' S"` with a hemisphere letter, e.g. `S 85° 36' 00" W 081° 05' 28"`. The flag takes the degree and minute values of each coordinate as `DD.MM`.
 
-| Format | Example |
-|--------|---------|
-| DD | `85.36, 81.05` |
-| DMS | `85°21'36" N, 81°03'00" E` |
+### Provided Files/Artifacts
 
-### Solution
+- `treasurehunttrip` image (stock-style treasure chest photo)
 
-1. The image looks like a generic stock photo and doesn't point to any real location.
+### Solution Walkthrough
 
-   ![Challenge image](images/treasure-hunt-time/1.png)
+The image looks like a generic stock photo and doesn't point to any real location.
 
-2. The EXIF data contains only a misleading comment, so the answer has to be found elsewhere.
+![Treasure chest image](images/treasure-hunt-image.jpg)
 
-   ![EXIF data](images/treasure-hunt-time/2.png)
+Checking its EXIF data reveals only a misleading comment, so the answer has to be found elsewhere.
 
-3. Both the challenge title and the filename contain the phrase **treasurehunttrip**, which is odd. Searching for it directly leads nowhere.
+![EXIF data](images/treasure-hunt-exif.jpg)
 
-4. The description says everything needed is already in the image, so I searched for unconventional ways of tagging coordinates.
+Both the challenge title and the filename contain the phrase **treasurehunttrip**, which is odd. Searching for it directly leads nowhere. The description states that everything needed is already in the image, so the next step was to look into unconventional methods of tagging coordinates.
 
-5. This turned up a geocaching-style pattern that matches what we have: three words used as a location tag.
+This turned up a pattern similar to geocoding systems: **what3words**, which encodes any ~3 m × 3 m square on Earth as three dictionary words (e.g. `///slurs.this.shark` for the front door of 10 Downing Street). Splitting the phrase into three words gives `treasure.hunt.trip`.
 
-   ![Geocaching pattern](images/treasure-hunt-time/3.png)
+![what3words overview](images/treasure-hunt-w3w-wiki.jpg)
 
-6. Checking the three words on the **what3words** website returned a valid hit.
+Checking the address on the what3words site returns a valid location.
 
-   ![what3words hit](images/treasure-hunt-time/4.png)
+![what3words hit](images/treasure-hunt-w3w-hit.jpg)
 
-7. The coordinate display on what3words is paywalled, so I used an online geocache converter to get the coordinates.
+Since what3words' coordinate function is paywalled, an online geocache converter was used to translate the address into coordinates:
 
-   ![Converter output](images/treasure-hunt-time/5.png)
+```
+Coordinates:        S85° 36.011' W081° 05.477'
+what3words address: treasure.hunt.trip
+Language:           English
+```
+
+![Converter output](images/treasure-hunt-converter.jpg)
+
+> **Note:** The converter outputs degrees and decimal minutes. Taking the degrees and whole minutes of each value (`85° 36'` and `81° 05'`) gives `85.36` and `81.05`, which is the flag's format.
 
 ### Flag
 
@@ -65,63 +69,89 @@ PacketCapture{85.36,81.05}
 ### Tools Used
 
 - what3words
-- Geocaching toolbox
+- Geocaching Toolbox (online coordinate converter)
 
 ---
 
-## 2. Mirror Identities
+## Mirror Identities
 
-**Category:** OSINT | **Difficulty:** Medium
+**Category:** OSINT
+**Difficulty:** Medium
 
 ### Description
 
 > Learn how to think outside of the cell. Think outside of the hole he left behind. See the identities linked to it without being named. Your only guidance is the excel they left.
 
-### Provided Files / Artifacts
+### Provided Files/Artifacts
 
 - Google Sheets link: <https://docs.google.com/spreadsheets/d/1ZXB6pnQEvym9pkDDoSxl49mxiiMAkzx0tS50OuwRt3Q/edit?usp=sharing>
 
-### Solution
+### Solution Walkthrough
 
-1. We are given a link to a public spreadsheet. Its contents are all noise, but the owner's Gmail can be extracted from any public Google document through its metadata. I used **xeuledoc** for this.
+We are given a link to a public spreadsheet. Its contents are mostly noise, but the document's metadata can be used to extract the owner's Google account. For this, **xeuledoc** was used.
 
-   ![xeuledoc output](images/mirror-identities/1.png)
+![Spreadsheet contents](images/mirror-identities-sheet.jpg)
 
-2. To enumerate the services registered with that Gmail address, I used **holehe**. It returned one hit: **Twitter/X**.
+![xeuledoc output](images/mirror-identities-xeuledoc.jpg)
 
-   ![holehe output](images/mirror-identities/2.png)
+xeuledoc reports the document owner:
 
-3. Using the name from xeuledoc, I searched X to see whether the target uses the same name. This gave two accounts: the first an obvious lead, the second a likely dud.
+- **Name:** cloveeen
+- **Email:** cloveeen@gmail.com
 
-   ![Search results on X](images/mirror-identities/3.png)
+Next, **holehe** was used to enumerate the services registered with this email.
 
-4. The first account leaks several pieces of information, mainly a GitHub account. Two tweets stand out:
-   - one hints at a **second Twitter account**
-   - the other hints at an **Instagram account**
+![holehe output](images/mirror-identities-holehe.jpg)
 
-   ![Interesting tweets](images/mirror-identities/4.png)
+There was one hit: **Twitter/X**. Searching for the name from xeuledoc turns up two accounts. The first (`@Clovendadoor`) is an obvious lead; the second (`@user00195266493`) is a probable dud.
 
-5. The GitHub account has a single repository with one commit. It contains what looks like a set of instructions. We don't yet know what they're for, so I pivoted to Instagram.
+![X accounts](images/mirror-identities-x-accounts.jpg)
 
-   ![GitHub repository](images/mirror-identities/5.png)
+![X account (decoy)](images/mirror-identities-x-accounts-decoy.jpg)
 
-6. Searching for the target's X handle on Instagram finds their account, which has one post. This is where the GitHub instructions come in.
+The `@Clovendadoor` profile has several leads: a GitHub account, a contact email, and two interesting tweets. The tweets suggest a **second X account** named after the target's turtles, and a possible **Instagram** account.
 
-   ![Instagram post](images/mirror-identities/6.png)
+![Interesting tweets](images/mirror-identities-tweets.jpg)
 
-7. Applying the instructions to the two numbers from the post and extracting characters 2-7 gives two names: **Namoor** (blue) and **Krommer** (red).
+#### GitHub
 
-   ![Extraction result](images/mirror-identities/7.png)
+The GitHub account has a single repository with one commit, containing:
 
-8. Back on X, the target mentions another user whose handle is their pet's name. Their bio contains a quoted phrase.
+- `README.md`: *"Red is a bit odd and blue is a bit even"*
+- `Turts`: `2-7`
 
-   ![Pet account bio](images/mirror-identities/8.png)
+![GitHub repository](images/mirror-identities-github.jpg)
 
-9. The account `Cloveeen` earlier instructed us to make contact through email. The quoted phrase can likely be used to trigger an automated reply.
+![Turts file](images/mirror-identities-github-turts.jpg)
 
-10. Sending the quoted phrase to that email address returns the flag.
+These look like instructions, but it's unclear what they apply to yet, so we pivot to Instagram.
 
-    ![Automated reply](images/mirror-identities/9.png)
+#### Instagram
+
+Searching the same handle on Instagram finds `clovendadoor` with a single post. The caption has two name lists: one marked with a blue circle and one with a red one. This is where the GitHub instructions apply:
+
+- **Blue = even** → position **2** in the blue list → **Namoor**
+- **Red = odd** → position **7** in the red list → **Krommer**
+
+![Instagram post](images/mirror-identities-instagram.jpg)
+
+#### Second X account
+
+The target stated that another account uses their pets' names as the handle. Combining the two names gives `@NamoorKrommer`.
+
+![X search](images/mirror-identities-namoorkrommer-search.jpg)
+
+![NamoorKrommer account](images/mirror-identities-namoorkrommer.jpg)
+
+The bio is written in quotation marks, which is curious:
+
+> "Do you know me? Did you find all of my 2 turtles? Their names are Namoor and Krommer"
+
+Remembering that the first account instructed visitors to contact `cloveeen@gmail.com`, this quote is likely a passphrase for an **automated reply**. Sending it to that email returns the flag.
+
+![Email sent](images/mirror-identities-email-sent.jpg)
+
+![Email reply with flag](images/mirror-identities-email-reply.jpg)
 
 ### Flag
 
@@ -136,9 +166,10 @@ PacketCapture{p3rf3ctly_P13c3D}
 
 ---
 
-## 3. Digital Footprint
+## Digital Footprint
 
-**Category:** OSINT | **Difficulty:** Medium
+**Category:** OSINT
+**Difficulty:** Medium
 
 ### Description
 
@@ -146,41 +177,49 @@ PacketCapture{p3rf3ctly_P13c3D}
 
 **Sub URL:** <https://www.reddit.com/r/CogitantStray/>
 
-### Solution
+### Solution Walkthrough
 
-1. We are given a banned subreddit.
+The challenge starts with a banned subreddit.
 
-   ![Banned subreddit](images/digital-footprint/1.png)
+![Banned subreddit](images/digital-footprint-banned.jpg)
 
-2. Before scraping the archives, I searched for the migration subreddit mentioned in the description so I could cross-reference users across both communities.
+Before scraping the archives of the banned subreddit, we first look for the migration subreddit so we can cross-reference users. Searching for the same name with a suffix finds a small active subreddit: `r/CogitantStrayOficial`.
 
-3. Searching the same subreddit name finds a small, active subreddit.
+![Migration subreddit](images/digital-footprint-migration.jpg)
 
-   ![Migration subreddit](images/digital-footprint/2.png)
+Cross-referencing every name mentioned in both subreddits using **Arctic Shift** produces a huge list that would be tedious to check one by one.
 
-4. Cross-referencing every name that appears in both subreddits through **Arctic Shift** produces a long list of candidates, which would be tedious to check one by one. I set the list aside and looked for other clues.
+#### Narrowing the list
 
-5. The current subreddit's rules link to a **Pastebin**, set up as a temporary wiki for the game.
+In the rules of the current subreddit is a Pastebin link, set up as a temporary wiki for the game.
 
-   ![Subreddit rules](images/digital-footprint/3.png)
+![Subreddit rules with Pastebin link](images/digital-footprint-wiki-link.jpg)
 
-6. The Pastebin lists the characters currently available in multiplayer mode. Any name on it can be crossed off our candidate list.
+It lists the characters currently available in multiplayer mode, which lets us cross out any names from our list that appear there.
 
-   ![Pastebin character list](images/digital-footprint/4.png)
+![Character roster](images/digital-footprint-roster.jpg)
 
-7. Searching further turns up several red herrings, including a curious quote: *"A Kacelia flower once bloomed, no more shall her dreams linger in my sleep."*
+#### Red herrings
 
-8. In a recent post, a comment sits beneath a deleted one. It mentions **Rosint**, which is not a playable character from the wiki. It is an OSINT tool that pulls from Arctic Shift to make scraping a target user's history easier.
+Searching further turns up several red herrings, including a curious quote:
 
-   ![Comment mentioning Rosint](images/digital-footprint/5.png)
+> "A Kacelia flower once bloomed, no more shall her dreams linger in my sleep."
 
-9. Running Rosint on `u/OguriClap` reveals the parent comment, which leads toward the flag.
+![Kacelia comment](images/digital-footprint-kacelia.jpg)
 
-   ![Rosint output for u/OguriClap](images/digital-footprint/6.png)
+A more useful find is a comment under a deleted comment in a recent post:
 
-10. Repeating the same process on `u/Axusismynameom` shows the flag in their deleted post.
+![Comment under deleted comment](images/digital-footprint-deleted-comment.jpg)
 
-    ![Deleted post with flag](images/digital-footprint/7.png)
+The commenter mentions **rosint**, which is not a character name from the wiki. It is an OSINT tool that pulls from Arctic Shift to make scraping information on a target user easier.
+
+#### Recovering deleted content
+
+Using Rosint on `u/OguriClap` shows the parent comment, which leads to the flag. Repeating the same process on `u/Axusismynameom` reveals the flag in their deleted post.
+
+![Rosint results](images/digital-footprint-rosint.jpg)
+
+![Flag in deleted post](images/digital-footprint-flag.jpg)
 
 ### Flag
 
@@ -196,92 +235,136 @@ PacketCapture{3Ven_1f_i_D1s4ppe4r_tH3_W0rld_r3Memb3rs}
 
 ---
 
-## 4. The Final Breadcrumb
+## The Final Breadcrumb
 
-**Category:** OSINT | **Difficulty:** Hard
+**Category:** OSINT
+**Difficulty:** Hard
 
 ### Description
 
 > We found a zip left behind by a hacker that keeps on breaching our backdoor. He seems to be deliberately leaving crumbs to him. Track it until you find what was left behind.
 
-### Provided Files / Artifacts
+### Provided Files/Artifacts
 
 A zip file containing:
 
-- source code
-- a PGP fingerprint
-- multiple magenta images
+- Source code
+- A PGP fingerprint
+- Multiple magenta images (`nature` folder, including `flag.png`)
 
-### Solution
+### Solution Walkthrough
 
-#### Phase 1: Initial triage
+#### Initial triage
 
-1. The source code contains a URL in its comments. Searching it leads to a dud, so we move on to the other points of interest.
+The source code has a URL in its comments (`update.sync-center.net`). Visiting it fails with `DNS_PROBE_FINISHED_NXDOMAIN`, so it is a dud and we move on to other points of interest.
 
-   ![URL in source comments](images/final-breadcrumb/1.png)
+![Dead link](images/final-breadcrumb-dead-link.jpg)
 
-2. I checked each image for leads, `flag.png` in particular because of its name. Only standard metadata is present, and the same holds for the other two images in the `nature` folder.
+![Source code](images/final-breadcrumb-source.jpg)
 
-   ![Image metadata](images/final-breadcrumb/2.png)
+Next, each image is checked for leads, especially `flag.png` because of its name. ExifTool returns only standard metadata, and the same is true of the other two images in the `nature` folder.
 
-#### Phase 2: The PGP fingerprint
+![ExifTool on flag.png](images/final-breadcrumb-exif-flag.jpg)
 
-3. Searching the fingerprint on PGP key servers returns an email format attached to the key. The username is generic, which makes it hard to find the right account.
+#### PGP fingerprint
 
-   ![Key server result](images/final-breadcrumb/3.png)
+Searching the fingerprint on PGP key servers returns one result with an email attached: `Black <magenta-black@mastodon.me>`.
 
-4. Searching the fingerprint on social platforms is another dud. Searching the key on Google finally produces a hit.
+![Key server result](images/final-breadcrumb-pgp-black.jpg)
 
-   ![Google hit](images/final-breadcrumb/4.png)
+The username `Black` is too generic to find the right account on Mastodon.
 
-5. The hit is a YouTube video showing a scene from *Final Destination*, with text in the video description. Submitting `PacketCapture{magentatexture}` did not work, so something is still missing.
+![Mastodon search for "Black"](images/final-breadcrumb-mastodon-black.jpg)
 
-   ![YouTube video](images/final-breadcrumb/5.png)
+Searching Mastodon for the fingerprint itself returns nothing.
 
-#### Phase 3: Mastodon
+![Mastodon search for the fingerprint](images/final-breadcrumb-mastodon-fingerprint.jpg)
 
-6. The channel description contains something interesting. A PGP fingerprint is normally 40 characters, so **removing the last 10 characters** of ours should give a usable search term. Doing so finds an account on **Mastodon**.
+#### YouTube lead
 
-   ![Channel description](images/final-breadcrumb/6.png)
-   ![Mastodon hit](images/final-breadcrumb/7.png)
+Searching the fingerprint on Google finds a YouTube video on the **PacketCapture** channel. It shows a scene from *Final Destination* and has a text description.
 
-7. The Mastodon account links to a Pastebin full of Mastodon emails. Searching any of them leads to a dud, because the accounts don't exist.
+![Google results](images/final-breadcrumb-google.jpg)
 
-8. Everything so far has been black and magenta, yet **magenta is missing from the list**. Going back to where we found the first Mastodon account and searching for `magenta` gives a result.
+![Video description](images/final-breadcrumb-video-description.jpg)
 
-   ![Pastebin list](images/final-breadcrumb/8.png)
-   ![Magenta account](images/final-breadcrumb/9.png)
+The description contains `magentatexture`. Submitting `PacketCapture{magentatexture}` fails, so something is still missing.
 
-#### Phase 4: Following the paths
+#### Mastodon
 
-9. This account is relatively unique, so it is easier to track. Two paths look plausible:
-   - the **support link**
-   - the **YouTube URL on the nickname** (not the link)
+The channel description says: *"A mastodon can only handle 30"*. A PGP fingerprint normally has 40 characters, so removing the last 10 should give a hit on Mastodon:
 
-10. The YouTube URL leads to a video whose title is a clear jab at the challenge title. It also contains **obfuscated text**, which I noted for later.
+```
+Full fingerprint (40): F5C4612C8848B517DBE7FFE64D7D300D33AC69B3
+Trimmed (30):          F5C4612C8848B517DBE7FFE64D7D30
+```
 
-    ![Second YouTube video](images/final-breadcrumb/10.png)
+![Channel description](images/final-breadcrumb-channel-description.jpg)
 
-11. The support link leads to a MediaFire download of the account's profile image. Running `exiftool` on it reveals a **comment containing a question**.
+Searching the trimmed value finds an account whose post links to a Pastebin full of Mastodon emails.
 
-    ![MediaFire link](images/final-breadcrumb/11.png)
-    ![exiftool comment](images/final-breadcrumb/12.png)
+![Trimmed fingerprint search](images/final-breadcrumb-mastodon-search.jpg)
 
-12. The filename (`fromdinoera`) is odd, which suggests **steganography**. It is a bit of a stretch, but worth checking. The question's answer is that the texture is simply missing: magenta and black is the standard placeholder for a missing texture, which is what ties the whole challenge together. Using that answer with **Steghide** reveals another MediaFire link.
+![Mastodon account with Pastebin](images/final-breadcrumb-mastodon-account.jpg)
 
-    ![Steghide extraction](images/final-breadcrumb/13.png)
+Searching any of those emails leads nowhere because the accounts don't exist. However, everything encountered so far has been black and magenta, and **magenta is missing from the list**.
 
-13. This link gives another flag, but it was rejected. It is a red herring, though it does give us one hint: **onion**.
+![Pastebin email list](images/final-breadcrumb-pastebin.jpg)
 
-    ![Red herring flag](images/final-breadcrumb/14.png)
+#### Finding the magenta key
 
-#### Phase 5: Putting it together
+Backtracking to the key server and searching for `magenta` gives two results, one of which is new: `M4g3NtaTxtre <magenta@mastodon.me>`. This username is unique enough to search.
 
-14. Back to the YouTube videos. The video's description and its obfuscated text show that the text is missing something. Onion links usually start with readable words, and the description's "there's no house" hint points to the same thing. We already have the missing part.
+![Key server search for "magenta"](images/final-breadcrumb-pgp-magenta.jpg)
 
-    ![Obfuscated text and description](images/final-breadcrumb/15.png)
+![Mastodon search](images/final-breadcrumb-mastodon-search-magenta.jpg)
 
-15. The video also tells us this is the "final destination", and the channel name is the flag format itself. Combining the channel name with the obfuscated text gives the flag.
+![Mastodon profile](images/final-breadcrumb-mastodon-magenta.jpg)
+
+The profile leads down a few paths. Two look plausible: the **support link** and the **YouTube URL** in the nickname (not the link).
+
+#### Path 1: YouTube video
+
+The video, *Hansel and Grettel* by `MagentaHideout`, has an obfuscated string in its description:
+
+```
+mofsj7hk44wtsh762nv46lt3bnprcmttbaqxknux66rnaddmyd.
+you found the witch house... except it's just a door. there's no house, only address
+```
+
+This is a clear jab at the challenge's title. The string is noted for later.
+
+![YouTube video](images/final-breadcrumb-youtube.jpg)
+
+#### Path 2: Support link
+
+The support link leads to a MediaFire download of the account's profile image. ExifTool shows a comment question: *"Why did I become magenta? where's my texture???"*
+
+![Profile image](images/final-breadcrumb-profile-image.jpg)
+
+![ExifTool comment](images/final-breadcrumb-exif-profile.jpg)
+
+The filename contains the odd string "fromdinoera", which hints at **steganography**. It's a stretch, but worth checking, and `steghide` prompts for a passphrase.
+
+![steghide prompt](images/final-breadcrumb-steghide-prompt.jpg)
+
+Magenta and black are the standard replacement for a missing texture, so the passphrase is simply `missing`. The extraction succeeds and writes `shhh.txt`.
+
+![steghide extraction](images/final-breadcrumb-steghide-extract.jpg)
+
+The extracted file points to another MediaFire download containing a flag-like string, `PacketCapture{0ld_k3ys_n0_W0rr1es}`, but submitting it fails. It's a red herring, though it left one useful hint: **onion**.
+
+![MediaFire red herring](images/final-breadcrumb-mediafire.jpg)
+
+#### Putting it together
+
+Returning to the YouTube description with the onion hint: onion addresses usually start with readable words, which is what the "there's no house, only address" line is about. The obfuscated string is the address, and the "house" (the missing part) is `magentatexture` from the PacketCapture video.
+
+The video itself says this is the final destination, and the channel name is even the flag format. Combining the two gives the flag.
+
+![PacketCapture video description](images/final-breadcrumb-video-description.jpg)
+
+![MagentaHideout video description](images/final-breadcrumb-youtube.jpg)
 
 ### Flag
 
@@ -291,7 +374,6 @@ PacketCapture{magentatexturemofsj7hk44wtsh762nv46lt3bnprcmttbaqxknux66rnaddmyd}
 
 ### Tools Used
 
+- ExifTool
 - PGP key servers
-- Google search
-- exiftool
 - Steghide
